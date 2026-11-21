@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Insta Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F5F2FA; --card:#fff; --ink:#1A1530; --mute:#6E678A; --line:#E3DEF0;
+  --plum:#3B2A6B; --ok:#1F7A4D; --bad:#B3261E;
+  --ring:conic-gradient(from 200deg,#FEDA75,#FA7E1E,#D62976,#962FBF,#4F5BD5,#FEDA75);
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#13101F; --card:#1D1930; --ink:#F1EDFB; --mute:#9A93B8; --line:#2E2848;
+  --plum:#6B54C4; --ok:#5FD39A; --bad:#FF8A80;}}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font:400 16px/1.5 "Bricolage Grotesque",system-ui,sans-serif;background:var(--paper);color:var(--ink);
+  display:grid;grid-template-columns:260px 1fr;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+button,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--plum);outline-offset:2px}
+
+aside{border-right:1px solid var(--line);padding:24px 20px;display:flex;flex-direction:column;gap:20px;overflow:auto}
+.brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:20px;letter-spacing:-.02em}
+.ring{width:40px;height:40px;border-radius:50%;background:var(--ring);display:grid;place-items:center;flex:none}
+.ring i{width:32px;height:32px;border-radius:50%;background:var(--paper);display:grid;place-items:center;font-style:normal;font-weight:700;font-size:15px}
+.ring.sm{width:30px;height:30px}.ring.sm i{width:24px;height:24px;font-size:12px}
+aside h2{font-size:14px;font-weight:500;color:var(--mute)}
+.pills{display:flex;flex-direction:column;gap:6px}
+.pill{all:unset;cursor:pointer;display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:12px}
+.pill:hover{background:var(--card)}
+.pill small{color:var(--mute)}
+.state{font-size:14px;color:var(--mute);display:flex;flex-direction:column;gap:4px;margin-top:auto}
+.state b{color:var(--ink);font-weight:500}
+
+main{display:flex;flex-direction:column;min-width:0;height:100%}
+#feed{flex:1;overflow:auto;padding:28px clamp(16px,5vw,64px);display:flex;flex-direction:column;gap:14px}
+.row{max-width:640px;display:flex;flex-direction:column;gap:8px}
+.row.me{align-self:flex-end;align-items:flex-end}
+.bubble{padding:10px 15px;border-radius:20px;white-space:pre-wrap;overflow-wrap:anywhere}
+.me .bubble{background:var(--ink);color:var(--paper);border-bottom-right-radius:6px}
+.ai .bubble{background:var(--card);border:1px solid var(--line);border-bottom-left-radius:6px}
+
+.sent{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:min(340px,100%)}
+.sent .to{display:flex;align-items:center;gap:10px;font-weight:500}
+.sent .dm{align-self:flex-end;background:var(--plum);color:#fff;padding:9px 14px;border-radius:20px 20px 6px 20px;max-width:90%;white-space:pre-wrap;overflow-wrap:anywhere}
+.sent .st{font-size:13px;color:var(--mute);align-self:flex-end}
+.sent.ok .st{color:var(--ok)} .sent.fail .st{color:var(--bad)}
+.sent.fail .dm{opacity:.45}
+
+.empty{margin:auto;text-align:center;max-width:420px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.empty h1{font-size:28px;letter-spacing:-.03em;line-height:1.15}
+.empty p{color:var(--mute)}
+.try{all:unset;cursor:pointer;border:1px solid var(--line);background:var(--card);padding:8px 14px;border-radius:999px;font-size:14px}
+.try:hover{border-color:var(--plum)}
+
+.dots{display:flex;gap:5px;padding:14px 16px}
+.dots span{width:7px;height:7px;border-radius:50%;background:var(--mute);animation:b 1s infinite}
+.dots span:nth-child(2){animation-delay:.15s}.dots span:nth-child(3){animation-delay:.3s}
+@keyframes b{50%{transform:translateY(-4px);opacity:.4}}
+@media (prefers-reduced-motion:reduce){.dots span{animation:none}}
+
+form{padding:12px clamp(16px,5vw,64px) 20px;display:flex;gap:10px;align-items:flex-end}
+textarea{flex:1;resize:none;max-height:140px;padding:12px 18px;border-radius:24px;border:1px solid var(--line);background:var(--card)}
+#go{all:unset;cursor:pointer;width:46px;height:46px;border-radius:50%;background:var(--ring);display:grid;place-items:center;flex:none}
+#att{all:unset;cursor:pointer;width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;flex:none}
+#att:hover{border-color:var(--plum)} #att svg{width:20px;height:20px;fill:none;stroke:var(--ink);stroke-width:1.8}
+#chip{padding:0 clamp(16px,5vw,64px);display:flex;align-items:center;gap:10px;font-size:14px;color:var(--mute)}
+#chip[hidden]{display:none} #chip img{width:44px;height:44px;object-fit:cover;border-radius:10px}
+#chip button{all:unset;cursor:pointer;padding:4px 8px}
+.thumb{max-width:240px;width:100%;border-radius:16px;border:1px solid var(--line)}
+.sent .thumb{max-width:100%}
+.sent a{color:var(--plum);font-size:14px;align-self:flex-end}
+aside h2{margin-bottom:6px}
+.mem{display:flex;flex-direction:column;gap:2px;font-size:14px}
+.memrow{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;padding:5px 8px;border-radius:10px}
+.memrow:hover{background:var(--card)} .memrow span{overflow-wrap:anywhere}
+.memrow button{all:unset;cursor:pointer;color:var(--mute);padding:0 4px;flex:none}
+.memrow button:hover{color:var(--bad)}
+.memchip{align-self:flex-start;font-size:13px;color:var(--mute);border:1px dashed var(--line);border-radius:999px;padding:3px 12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.auto{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:16px;background:var(--card);cursor:pointer}
+.auto b{display:block;font-weight:500} .auto small{color:var(--mute);font-size:13px;line-height:1.3;display:block}
+.auto input{appearance:none;-webkit-appearance:none;width:42px;height:24px;border-radius:999px;background:var(--line);position:relative;flex:none;cursor:pointer;transition:background .2s}
+.auto input::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
+.auto input:checked{background:linear-gradient(90deg,#FA7E1E,#D62976,#962FBF)} .auto input:checked::after{transform:translateX(18px)}
+.memrow b{font-weight:500}
+@media (prefers-reduced-motion:reduce){.auto input,.auto input::after{transition:none}}
+main[hidden]{display:none}
+.nav{display:flex;flex-direction:column;gap:4px}
+.navbtn{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;font-weight:500}
+.navbtn:hover{background:var(--card)} .navbtn.on{background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+.badge{margin-left:auto;background:linear-gradient(90deg,#FA7E1E,#D62976,#962FBF);color:#fff;border-radius:999px;font-size:12px;padding:0 8px;min-width:20px;text-align:center}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+#autoView{overflow:auto}
+.ahead{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;padding:28px clamp(16px,5vw,64px) 8px}
+.ahead h1{font-size:28px;letter-spacing:-.03em;line-height:1.15;margin-bottom:6px} .ahead p{color:var(--mute);max-width:480px}
+.ahead .auto{min-width:270px}
+.people{padding:12px clamp(16px,5vw,64px) 40px;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;align-content:start}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.pcard.new{border-color:var(--plum)}
+.ptop{display:flex;align-items:center;gap:10px} .who{font-weight:500;overflow-wrap:anywhere} .ptop small{color:var(--mute);display:block;font-size:13px}
+.tag{margin-left:auto;font-size:12px;padding:2px 10px;border-radius:999px;background:var(--plum);color:#fff;flex:none} .tag.urgent{background:var(--bad)}
+.psum{line-height:1.45}
+.todo{background:var(--paper);border-radius:14px;padding:10px 12px;font-size:15px}
+.todo b{display:block;font-weight:500;font-size:13px;color:var(--mute);margin-bottom:4px} .todo li{margin-left:18px}
+.pact{display:flex;gap:8px;flex-wrap:wrap}
+.pbtn{all:unset;cursor:pointer;font-size:14px;border:1px solid var(--line);border-radius:999px;padding:5px 12px} .pbtn:hover{border-color:var(--plum)}
+.tx{display:flex;flex-direction:column;gap:6px;max-height:260px;overflow:auto;font-size:14px} .tx[hidden]{display:none}
+.tx div{padding:6px 12px;border-radius:14px;max-width:88%;overflow-wrap:anywhere}
+.tx .u{background:var(--paper);align-self:flex-start} .tx .a{background:var(--plum);color:#fff;align-self:flex-end}
+.empty2{grid-column:1/-1;color:var(--mute);text-align:center;padding:60px 0}
+#go:disabled{opacity:.4;cursor:default}
+#go svg{width:20px;height:20px;fill:#fff}
+@media(max-width:760px){body{grid-template-columns:1fr}aside{display:none}}
+</style>
+</head>
+<body>
+<aside>
+  <div class="brand"><span class="ring"><i>@</i></span>Insta Agent</div>
+  <nav class="nav">
+    <button class="navbtn on" data-v="chat" type="button">Assistant</button>
+    <button class="navbtn" data-v="auto" type="button">Auto-messages <span id="dot" class="dot" hidden></span><span id="badge" class="badge" hidden></span></button>
+  </nav>
+  <div><h2>People you can message</h2><div class="pills" id="contacts"></div></div>
+  <div><h2>Memory</h2><div class="mem" id="mem"></div></div>
+  <div class="state" id="state"></div>
+</aside>
+
+<main id="chatView">
+  <div id="feed">
+    <div class="empty" id="empty">
+      <span class="ring" style="width:64px;height:64px"><i style="width:54px;height:54px;font-size:22px">@</i></span>
+      <h1>Tell me who to message and what to say.</h1>
+      <p>I'll write it, send it from your Instagram account, and show you what went out.</p>
+      <button class="try" data-t="Message @username: hey, are we still on for Saturday?">Message @username: hey, are we still on for Saturday?</button>
+    </div>
+  </div>
+  <div id="chip" hidden></div>
+  <form id="f">
+    <input type="file" id="file" accept="image/*" hidden>
+    <button type="button" id="att" aria-label="Attach image"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="m4 18 5-5 4 4 3-3 4 4"/></svg></button>
+    <textarea id="in" rows="1" placeholder="Message @someone: …" aria-label="Message the agent"></textarea>
+    <button id="go" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M3 11.3 20.5 3.6c.8-.3 1.5.4 1.2 1.2L14 21.5c-.4.9-1.7.8-1.9-.2l-1.3-6.1-6.1-1.3c-1-.2-1.1-1.5-.2-1.9z"/></svg></button>
+  </form>
+</main>
+
+<main id="autoView" hidden>
+  <div class="ahead">
+    <div><h1>Auto-messages</h1><p>People who wrote to you while JARVIS was answering, and what each of them needs from you.</p></div>
+    <label class="auto"><span><b>Auto-reply</b><small id="autosub">JARVIS answers DMs for you</small></span><input type="checkbox" id="auto" role="switch" aria-label="Auto-reply"></label>
+  </div>
+  <div id="people" class="people"></div>
+</main>
+
+<script>
+const $=s=>document.querySelector(s), feed=$('#feed'), inp=$('#in'), go=$('#go');
+let history=[], pending=null;
+function showChip(){const c=$('#chip'); c.hidden=false; c.replaceChildren(); const im=el('img'); im.src=pending.url; im.alt='';
+  const x=el('button','','✕'); x.type='button'; x.setAttribute('aria-label','Remove image'); x.onclick=()=>{pending=null;hideChip()}; c.append(im,el('span','','Image attached'),x)}
+function hideChip(){const c=$('#chip'); c.hidden=true; c.replaceChildren()}
+$('#att').onclick=()=>$('#file').click();
+$('#file').onchange=async e=>{const f=e.target.files[0]; if(!f)return; const fd=new FormData(); fd.append('file',f);
+  try{const r=await fetch('/api/upload',{method:'POST',body:fd}); if(!r.ok)throw 0; pending=await r.json(); showChip()}catch{alert('Could not upload that image')} e.target.value=''};
+
+function el(tag,cls,txt){const e=document.createElement(tag); if(cls)e.className=cls; if(txt!=null)e.textContent=txt; return e}
+function add(role,node){$('#empty')?.remove(); const r=el('div','row '+role); r.append(node); feed.append(r); feed.scrollTop=feed.scrollHeight; return r}
+
+function actionCard(a){
+  if(['remember','forget','save_alias'].includes(a.tool)){
+    if(!a.result.ok) return null;
+    const t=a.tool==='remember'?'Remembered: '+a.result.remembered:a.tool==='save_alias'?'Remembered: '+a.result.nickname+' = @'+a.result.username:'Forgot '+a.result.removed+' item(s)';
+    return el('div','memchip',t);
+  }
+  if(a.tool==='find_contact') return null;
+  if(a.tool==='create_instagram_post'){
+    const ok=a.result.ok, c=el('div','sent '+(ok?'ok':'fail'));
+    const to=el('div','to'); const ring=el('span','ring sm'); ring.append(el('i','','@')); to.append(ring,el('span','','New post')); c.append(to);
+    const im=el('img','thumb'); im.src='/media/'+(a.args.image||'').split('/').pop(); im.alt=''; c.append(im, el('div','dm',a.args.caption||''));
+    c.append(el('div','st', ok ? (a.result.dry_run?'Test run, not actually posted':'Posted') : 'Not posted: '+a.result.error));
+    if(ok&&a.result.url){const l=el('a','','View on Instagram'); l.href=a.result.url; l.target='_blank'; l.rel='noopener'; c.append(l)}
+    return c;
+  }
+  if(a.tool!=='send_instagram_dm'){return null}
+  const ok=a.result.ok, u=(a.result.to||a.args.username||'').replace(/^@/,'');
+  const c=el('div','sent '+(ok?'ok':'fail'));
+  const to=el('div','to'); const ring=el('span','ring sm'); ring.append(el('i','',(u[0]||'?').toUpperCase()));
+  to.append(ring, el('span','','@'+u)); c.append(to, el('div','dm',a.args.text||''));
+  c.append(el('div','st', ok ? (a.result.dry_run?'Test run, not actually sent':'Sent') : 'Not sent: '+a.result.error));
+  return c;
+}
+
+async function send(text){
+  const att=pending; pending=null; hideChip();
+  history.push({role:'user',content:att?text+'\n[Attached image: '+att.filename+']':text});
+  if(att){const im=el('img','thumb'); im.src=att.url; im.alt=''; add('me',im)}
+  add('me',el('div','bubble',text));
+  const t=add('ai',el('div','bubble dots')); t.firstChild.innerHTML='<span></span><span></span><span></span>';
+  go.disabled=true;
+  try{
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:history})});
+    const d=await r.json(); t.remove();
+    if(!r.ok) throw new Error(d.detail||'Request failed');
+    (d.actions||[]).forEach(a=>{const c=actionCard(a); if(c) add('ai',c)});
+    if(d.reply){add('ai',el('div','bubble',d.reply)); history.push({role:'assistant',content:d.reply})}
+    if(d.suggestions&&d.suggestions.length){const w=el('div','chips'); d.suggestions.forEach(s=>{const b=el('button','try',s); b.type='button'; b.dataset.t=s; w.append(b)}); add('ai',w)}
+    loadMem();
+    loadStatus();
+  }catch(e){t.remove(); add('ai',el('div','bubble','Something broke: '+e.message+'. Check your API keys in .env and try again.'))}
+  go.disabled=false; inp.focus();
+}
+
+$('#f').addEventListener('submit',e=>{e.preventDefault(); const v=inp.value.trim(); if(!v)return; inp.value=''; inp.style.height='auto'; send(v)});
+inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault(); $('#f').requestSubmit()}});
+inp.addEventListener('input',()=>{inp.style.height='auto'; inp.style.height=inp.scrollHeight+'px'});
+document.addEventListener('click',e=>{const t=e.target.closest('.try'); if(t){inp.value=t.dataset.t; inp.focus()}});
+
+async function loadStatus(){
+  try{
+    const s=await (await fetch('/api/status')).json();
+    const box=$('#contacts'); box.replaceChildren();
+    if(!s.contacts.length) box.append(el('small','','Nobody yet. In graph mode, people appear after they DM your account.'));
+    s.contacts.forEach(u=>{const b=el('button','pill'); b.append(el('span','ring sm')); b.firstChild.append(el('i','',u[0].toUpperCase())); b.append(el('span','','@'+u));
+      b.onclick=()=>{inp.value='Message @'+u+': '; inp.focus()}; box.append(b)});
+    const st=$('#state'); st.replaceChildren();
+    [['Models',s.providers.join(' → ')||'no keys set'],['Sending',s.dry_run?'test run':'live']].forEach(([k,v])=>{
+      const d=el('div'); d.append(k+': ',el('b','',v)); st.append(d)});
+  }catch{}
+}
+async function loadMem(){
+  try{
+    const m=await (await fetch('/api/memory')).json(), box=$('#mem'); box.replaceChildren();
+    const items=[...Object.entries(m.aliases).map(([k,v])=>({id:'alias:'+k,text:k+' = @'+v})),...m.facts.map(f=>({id:f.id,text:f.text}))];
+    if(!items.length) box.append(el('small','','Nothing yet. Tell me things worth remembering.'));
+    items.forEach(i=>{const r=el('div','memrow'); r.append(el('span','',i.text)); const x=el('button','','✕'); x.type='button'; x.setAttribute('aria-label','Forget this');
+      x.onclick=async()=>{await fetch('/api/memory/'+encodeURIComponent(i.id),{method:'DELETE'}); loadMem()}; r.append(x); box.append(r)});
+  }catch{}
+}
+async function loadAuto(){
+  try{
+    const a=await (await fetch('/api/autoreply')).json();
+    $('#auto').checked=a.enabled; $('#dot').hidden=!a.enabled;
+    $('#autosub').textContent=a.enabled?(a.dry_run?'On, test run: drafts only, nothing is sent':'On: '+a.name+' is replying to new DMs'):a.name+' can answer DMs for you';
+  }catch{}
+}
+let view='chat', inboxData=[]; const open=new Set();
+function show(v){view=v; $('#chatView').hidden=v!=='chat'; $('#autoView').hidden=v!=='auto';
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('on',b.dataset.v===v)); if(v==='auto')loadInbox(); else inp.focus()}
+document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>show(b.dataset.v));
+function ago(t){const s=Math.max(0,Date.now()/1000-t); return s<60?'just now':s<3600?Math.floor(s/60)+'m ago':s<86400?Math.floor(s/3600)+'h ago':Math.floor(s/86400)+'d ago'}
+function updateBadge(){const n=inboxData.filter(p=>p.unread).length; $('#badge').hidden=!n; $('#badge').textContent=n}
+function renderPeople(){
+  const box=$('#people'); box.replaceChildren();
+  if(!inboxData.length){box.append(el('div','empty2','Nobody has written yet. Turn on auto-reply and JARVIS will collect what people say here.')); return}
+  inboxData.sort((a,b)=>((b.unread&&b.todo.length)-(a.unread&&a.todo.length))||(b.updated-a.updated));
+  inboxData.forEach(p=>{
+    const c=el('div','pcard'+(p.unread?' new':'')), top=el('div','ptop'), ring=el('span','ring sm'); ring.append(el('i','',(p.username[0]||'?').toUpperCase()));
+    const who=el('div'); who.append(el('span','who','@'+p.username), el('small','',p.count+(p.count===1?' message':' messages')+' · '+ago(p.updated)));
+    top.append(ring,who); if(p.urgent) top.append(el('span','tag urgent','Urgent')); else if(p.unread) top.append(el('span','tag','New'));
+    const last=[...p.messages].reverse().find(m=>m.role==='user');
+    c.append(top, el('div','psum',p.summary||(last?'Said: '+last.content:'')));
+    if(p.todo&&p.todo.length){const t=el('div','todo'), ul=el('ul'); t.append(el('b','','For you')); p.todo.forEach(x=>ul.append(el('li','',x))); t.append(ul); c.append(t)}
+    const tx=el('div','tx'); tx.hidden=!open.has(p.id); p.messages.forEach(m=>tx.append(el('div',m.role==='user'?'u':'a',m.content)));
+    const act=el('div','pact');
+    const mk=(label,fn)=>{const b=el('button','pbtn',label); b.type='button'; b.onclick=fn; act.append(b); return b};
+    const markSeen=()=>{if(p.unread){p.unread=false; c.classList.remove('new'); c.querySelector('.tag:not(.urgent)')?.remove(); fetch('/api/inbox/'+encodeURIComponent(p.id)+'/seen',{method:'POST'}); updateBadge()}};
+    const sh=mk(tx.hidden?'Show chat':'Hide chat',()=>{tx.hidden=!tx.hidden; tx.hidden?open.delete(p.id):open.add(p.id); sh.textContent=tx.hidden?'Show chat':'Hide chat'; markSeen()});
+    if(p.unread) mk('Mark read',markSeen);
+    mk('Reply myself',()=>{show('chat'); inp.value='Message @'+p.username+': '; inp.focus()});
+    mk('Dismiss',async()=>{await fetch('/api/inbox/'+encodeURIComponent(p.id),{method:'DELETE'}); open.delete(p.id); loadInbox()});
+    c.append(act,tx); box.append(c);
+  });
+}
+async function loadInbox(){try{inboxData=await (await fetch('/api/inbox')).json(); updateBadge(); if(view==='auto')renderPeople()}catch{}}
+$('#auto').onchange=async e=>{await fetch('/api/autoreply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:e.target.checked})}); loadAuto()};
+loadStatus(); loadMem(); loadAuto(); loadInbox(); setInterval(()=>{loadAuto(); loadInbox()},8000);
+</script>
+</body>
+</html>

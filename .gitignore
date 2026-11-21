@@ -1,0 +1,20 @@
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+venv/
+__pycache__/
+
+# Build files
+dist/
+build/
+# Private runtime data
+contacts.json
+threads.json
+autoreply_log.json
+memory.json
+inbox.json
+settings.json

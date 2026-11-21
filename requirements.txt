@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+openai
+httpx
+python-dotenv
+# only if INSTAGRAM_MODE=instagrapi (unofficial, ban risk)
+# instagrapi
